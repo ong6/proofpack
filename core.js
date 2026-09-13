@@ -26,7 +26,7 @@ const vis = (value) => choice(value, ['internal', 'customer'], 'Visibility');
 const array = (value, label, max = LIMITS.records) => { if (!Array.isArray(value) || value.length > max) fail(`${label} must be a list of at most ${max} entries.`); };
 const stringFields = (record, fields, required = []) => fields.forEach((field) => text(record[field], field, field === 'name' || field === 'owner' || field === 'reviewer' ? 200 : 4000, required.includes(field)));
 export function validateProject(project) {
-  obj(project, ['schemaVersion', 'revision', 'charter', 'criteria', 'evidence', 'risks', 'decisions', 'checklist', 'attachments', ...['decisionReviews', 'attachmentHistory'].filter((key) => key in (project || {}))], 'Project');
+  obj(project, ['schemaVersion', 'revision', 'charter', 'criteria', 'evidence', 'risks', 'decisions', 'checklist', 'attachments', ...['decisionReviews', 'attachmentHistory', 'proposals'].filter((key) => key in (project || {}))], 'Project');
   if (project.schemaVersion !== 1) fail('Unsupported project schema version.');
   if (!Number.isSafeInteger(project.revision) || project.revision < 0) fail('Invalid project revision.');
   obj(project.charter, ['customer', 'title', 'objective', 'owners', 'startDate', 'endDate', 'internalNotes', 'demo'], 'Charter');
@@ -76,6 +76,7 @@ export function validateProject(project) {
   for (const c of project.checklist) {
     obj(c, ['id', 'name', 'detail', 'owner', 'dueDate', 'done', 'visibility'], 'Checklist item'); stringFields(c, ['name', 'detail', 'owner'], ['name', 'owner']); date(c.dueDate, 'Checklist due date'); if (typeof c.done !== 'boolean') fail('Checklist done must be boolean.');
   }
+  if (project.proposals) { array(project.proposals, 'Agent proposals', LIMITS.reviews); const proposalIds = new Set(); for (const p of project.proposals) { obj(p, ['id', 'kind', 'criterionId', 'outcome', 'rationale', 'actor', 'actorKind', 'conditions', 'visibility', 'createdAt', 'fingerprint'], 'Agent proposal'); identifier(p.id); if (proposalIds.has(p.id)) fail('Duplicate proposal ID.'); proposalIds.add(p.id); choice(p.kind, ['criterion', 'decision'], 'Proposal kind'); choice(p.actorKind, ['agent'], 'Proposal actor kind'); choice(p.visibility, ['internal'], 'Proposal visibility'); choice(p.outcome, p.kind === 'criterion' ? ['met', 'unmet', 'blocked'] : ['proceed', 'hold', 'stop'], 'Proposal outcome'); if (p.kind === 'criterion') identifier(p.criterionId); else if (p.criterionId !== null) fail('Decision proposals do not target a criterion.'); text(p.actor, 'Actor', 200, true); text(p.rationale, 'Rationale', 4000, true); text(p.conditions, 'Conditions'); timestamp(p.createdAt, 'Proposal date'); if (!/^[a-f0-9]{64}$/.test(p.fingerprint)) fail('Invalid proposal fingerprint.'); } }
   if (project.decisionReviews) { array(project.decisionReviews, 'Decision review history', LIMITS.reviews); for (const review of project.decisionReviews) validateReview(review, true); }
   if (project.attachmentHistory) array(project.attachmentHistory, 'Historical attachments', LIMITS.attachments);
   const evidenceIds = new Set(project.evidence.map((e) => e.id)); let total = 0;
@@ -157,6 +158,7 @@ export function customerProject(project) {
   const result = structuredClone(project);
   delete result.charter.internalNotes;
   delete result.attachmentHistory;
+  delete result.proposals;
   const publicReview = (review) => { const { snapshot, customerFingerprint, ...safe } = review; safe.fingerprint = 'customerFingerprint' in review ? customerFingerprint : review.fingerprint; return safe; };
   result.criteria = result.criteria.filter((c) => c.visibility === 'customer').map((c) => ({ ...c, ...(c.reviews ? { reviews: c.reviews.map(publicReview) } : {}) }));
   if (result.decisionReviews) result.decisionReviews = result.decisionReviews.filter((d) => d.visibility === 'customer').map(publicReview);

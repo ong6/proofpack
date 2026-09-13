@@ -28,6 +28,8 @@ export class PilotLibrary {
     try { value = JSON.parse((await readSafe(this.file)).toString('utf8')); }
     catch (error) {
       if (error.code !== 'ENOENT') throw new Error(`Cannot open pilot library; existing data has not been replaced. ${error.message}`);
+      const marked = await fs.lstat(path.join(this.directory, '.agent-workspace.json')).then(() => true, e => { if (e.code === 'ENOENT') return false; throw e; });
+      if (marked) throw new Error('Initialized pilot library is missing. Preserve the directory and recover the library; it will not be reset.');
       let legacy;
       try { legacy = await readSafe(path.join(this.directory, 'project.json')); } catch (readError) { if (readError.code !== 'ENOENT') throw readError; }
       const first = await new Store(this.directory).open();

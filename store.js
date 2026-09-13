@@ -61,15 +61,14 @@ export class Store {
     await this.collectUnused().catch(() => {});
     return this.snapshot();
   }
-  save(value) {
-    return this.serial(async () => {
+  validateSave(value) {
       const next = validateProject(value); this.expectRevision(next.revision);
       // Attachment metadata is server-owned. It can only be removed here, never fabricated or reassigned.
       for (const a of next.attachments) {
         const previous = this.project.attachments.find((entry) => entry.id === a.id);
         if (!previous || Object.keys(previous).some((key) => key !== 'visibility' && a[key] !== previous[key])) throw new ValidationError('Attachment metadata is immutable; use upload to add attachments.');
       }
-      for (const section of ['decisionReviews', 'attachmentHistory']) if (canonical(next[section] || []) !== canonical(this.project[section] || [])) throw new ValidationError('Review and attachment history are immutable; use explicit review actions.');
+      for (const section of ['decisionReviews', 'attachmentHistory', 'proposals']) if (canonical(next[section] || []) !== canonical(this.project[section] || [])) throw new ValidationError('Review, proposal and attachment history are immutable; use explicit review actions.');
       for (const c of next.criteria) {
         const previous = this.project.criteria.find((entry) => entry.id === c.id);
         if (!previous) { if (c.status !== 'unassessed' || c.reviews?.length) throw new ValidationError('New criteria must be unassessed; use the explicit review action.'); continue; }
@@ -80,9 +79,9 @@ export class Store {
       for (const review of [...this.project.criteria.flatMap((c) => c.reviews || []), ...(this.project.decisionReviews || [])]) for (const a of review.snapshot?.attachments || []) referenced.add(a.id);
       const removed = this.project.attachments.filter((a) => !next.attachments.some((entry) => entry.id === a.id) && referenced.has(a.id));
       if (removed.length) next.attachmentHistory = [...(next.attachmentHistory || []), ...removed];
-      return this.commit(next);
-    });
+      return next;
   }
+  save(value) { return this.serial(() => this.commit(this.validateSave(value))); }
   review(value) { return this.serial(async () => { this.expectRevision(value?.revision); return this.commit(createCriterionReview(this.project, value)); }); }
   decide(value) { return this.serial(async () => { this.expectRevision(value?.revision); return this.commit(createDecisionReview(this.project, value)); }); }
   upload(value) {

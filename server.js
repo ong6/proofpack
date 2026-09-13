@@ -6,6 +6,8 @@ import { PilotLibrary } from './library.js';
 import { LIMITS, ValidationError, assess, manifest, demoProject, emptyProject, coverage, decisionFreshness } from './core.js';
 import { fielddeckDeck } from './fielddeck.js';
 import { renderHandover } from './handover.js';
+import { withLock } from './agent/workspace.mjs';
+import { ProofpackService } from './service.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const HOST = '127.0.0.1';
@@ -21,9 +23,10 @@ async function body(request, max = LIMITS.request) {
 }
 function json(response, status, value) { response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); response.end(JSON.stringify(value)); }
 function download(response, name, type, data) { response.writeHead(200, { 'Content-Type': type, 'Content-Disposition': `attachment; filename="${name}"` }); response.end(data); }
-export async function createApp({ directory = path.join(ROOT, 'data') } = {}) {
-  const library = await new PilotLibrary(directory).open();
-  const store = library.get();
+export async function createApp({ directory = path.join(ROOT, 'data'), workspace } = {}) {
+  if (workspace) directory = workspace;
+  let library = await withLock(directory, () => new PilotLibrary(directory).open(), { create: true });
+  const store = new Proxy({}, { get: (_, key) => { const current = library.get(); const value = current[key]; return typeof value === 'function' ? value.bind(current) : value; } });
   const server = http.createServer(async (request, response) => {
     response.setHeader('Content-Security-Policy', CSP); response.setHeader('X-Content-Type-Options', 'nosniff'); response.setHeader('Referrer-Policy', 'no-referrer'); response.setHeader('Cache-Control', 'no-store'); response.setHeader('X-Frame-Options', 'SAMEORIGIN'); response.setHeader('Cross-Origin-Resource-Policy', 'same-origin'); response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     try {
@@ -34,6 +37,8 @@ export async function createApp({ directory = path.join(ROOT, 'data') } = {}) {
       if (request.headers['sec-fetch-site'] === 'cross-site') throw new ValidationError('Cross-site requests are not allowed.', 403);
       if (!['GET', 'HEAD'].includes(request.method) && request.headers.origin !== origin) throw new ValidationError('Writes require the exact local Origin header.', 403);
       if (!request.url.startsWith('/') || request.url.startsWith('//')) throw new ValidationError('Invalid request target.');
+      await withLock(directory, async () => {
+      const service = await new ProofpackService(directory).open(); library = service.library;
       const url = new URL(request.url, origin); const route = url.pathname;
       const pilot = url.searchParams.has('pilot') ? url.searchParams.get('pilot') : library.value.defaultPilotId;
       const scoped = (action, write = false) => library.withPilot(pilot, action, write);
@@ -44,8 +49,8 @@ export async function createApp({ directory = path.join(ROOT, 'data') } = {}) {
         const value = await scoped(async (active) => { const project = active.snapshot(); const health = await active.health(project); return { project, health, readiness: assess(project, health), coverage: coverage(project, health), decisionReviews: (project.decisionReviews || []).map((d) => ({ ...d, freshness: decisionFreshness(project, d) })) }; });
         return json(response, 200, value);
       }
-      if (request.method === 'PUT' && route === '/api/project') { const value = await body(request, 8 * 1024 * 1024); return json(response, 200, { project: await scoped((active) => active.save(value), true) }); }
-      if (request.method === 'POST' && route === '/api/attachments') { const value = await body(request, 12 * 1024 * 1024); return json(response, 201, { project: await scoped((active) => active.upload(value), true) }); }
+      if (request.method === 'PUT' && route === '/api/project') { const value = await body(request, 8 * 1024 * 1024); return json(response, 200, { project: await service.save(pilot, value) }); }
+      if (request.method === 'POST' && route === '/api/attachments') { const value = await body(request, 12 * 1024 * 1024); return json(response, 201, { project: await service.upload(pilot, value) }); }
       if (request.method === 'POST' && ['/api/reviews', '/api/decisions'].includes(route)) { const value = await body(request, 32 * 1024); return json(response, 201, { project: await scoped((active) => route === '/api/reviews' ? active.review(value) : active.decide(value), true) }); }
       if (request.method === 'POST' && route === '/api/import') {
         const value = await body(request); if (!value || Object.keys(value).sort().join(',') !== 'backup,revision') throw new ValidationError('Import requires backup and revision.');
@@ -80,7 +85,7 @@ export async function createApp({ directory = path.join(ROOT, 'data') } = {}) {
       }
       if (request.method === 'GET' && route === '/favicon.ico') { response.writeHead(204); return response.end(); }
       throw new ValidationError('Not found.', 404);
-    } catch (error) {
+    }); } catch (error) {
       if (!response.headersSent) json(response, error.status || 500, { error: error.status ? error.message : 'Local operation failed. No success is assumed; check the server terminal and retry.' }); else response.end();
       if (!error.status) console.error(error);
     }
@@ -91,7 +96,7 @@ export async function createApp({ directory = path.join(ROOT, 'data') } = {}) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('Proofpack — local pilot evidence & handover workspace\n\nUsage: npm start\n       npm start -- --help\n       npm test\n\nOpen http://127.0.0.1:4313 (not localhost). Node 23 or newer; no runtime dependencies.\nData stays in ./data beside server.js. No remote services or telemetry.\nUse in-app Help for import/export, attachment limits, redaction, and recovery.\nOnly one server process may use this data directory at a time.\nStop with Ctrl+C.'); return;
+    console.log('Proofpack — local pilot evidence & handover workspace\n\nUsage: npm start\n       npm start -- --help\n       npm test\n\nOpen http://127.0.0.1:4313 (not localhost). Node 23 or newer; pinned local runtime dependencies.\nData stays in ./data beside server.js. No remote services or telemetry.\nUse in-app Help for import/export, attachment limits, redaction, and recovery.\nOnly one server process may use this data directory at a time.\nStop with Ctrl+C.'); return;
   }
   if (args.length) throw new Error('Unknown option. Run npm start -- --help.');
   const directory = path.join(ROOT, 'data'); await fs.mkdir(directory, { recursive: true, mode: 0o700 });

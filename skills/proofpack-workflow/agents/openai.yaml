@@ -1,0 +1,4 @@
+interface:
+  display_name: "Proofpack agent workflow"
+  short_description: "Record pilot evidence and prepare review handovers"
+  default_prompt: "Use $proofpack-workflow to organize pilot evidence and prepare a customer handover."

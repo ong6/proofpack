@@ -1,7 +1,10 @@
 {
   "name": "proofpack",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "bin": { "proofpack": "agent/cli.mjs" },
+  "files": ["agent", "core.js", "store.js", "library.js", "fielddeck.js", "handover.js", "public", "skills", "server.js", "service.mjs"],
+  "dependencies": { "@modelcontextprotocol/sdk": "1.30.0", "zod": "4.6.4" },
   "description": "Local-first pilot evidence and customer handover workspace",
   "type": "module",
   "engines": { "node": ">=23" },

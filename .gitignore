@@ -2,3 +2,9 @@ data/
 node_modules/
 .test-tmp/
 *.tmp
+.env
+.env.*
+*.pem
+*.key
+*.log
+*.tgz
