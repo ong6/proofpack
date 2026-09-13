@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183e31">
+  <meta name="description" content="A local workspace for pilot evidence, explicit success reviews, and careful customer handovers.">
+  <title>Proofpack — Pilot workspace</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true">p<span>.</span></span>proofpack<span class="brand-dot">™</span></a>
+      <div class="pilot-picker"><label for="pilot-select">PILOT LIBRARY</label><select id="pilot-select" aria-describedby="pilot-caption" disabled><option>Opening library…</option></select><span id="pilot-caption">Each tab keeps its own pilot</span><button class="text-button" data-action="navigate" data-page="library">Manage pilots</button></div>
+      <div class="workspace-label"><span class="tiny-square"></span> THE PILOT WORKSPACE</div>
+      <nav id="navigation" aria-label="Main navigation"></nav>
+      <div class="sidebar-bottom">
+        <div class="local-card"><span class="local-dot" aria-hidden="true"></span><div><strong>Local by design</strong><p>Your evidence stays here.<br>No accounts. No cloud.</p></div></div>
+        <button class="sidebar-help" data-action="help"><span aria-hidden="true">?</span> A little guidance <span aria-hidden="true">↗</span></button>
+        <div class="sidebar-foot">PROOFPACK <span>V1.0 / LOCAL</span></div>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><div class="breadcrumb"><span id="breadcrumb-pilot">Pilot workspace</span><span aria-hidden="true">/</span> <strong id="breadcrumb-current">Overview</strong></div><div class="topbar-right"><span id="save-status" role="status"><span class="status-dot"></span> Local workspace</span><button class="button small subtle" data-action="preview">Customer preview <span aria-hidden="true">↗</span></button></div></header>
+      <main id="main" tabindex="-1"><div class="loading-state"><span class="loading-ring"></span><h1>Opening your workspace</h1><p>Checking local records and attachment integrity.</p></div></main>
+      <footer class="workspace-footer"><span>A clear record. A confident handover.</span><span>Stored on this device <span aria-hidden="true">·</span> 127.0.0.1:4313</span></footer>
+    </div>
+  </div>
+  <dialog id="editor" aria-labelledby="editor-title"><form id="editor-form"><div class="dialog-head"><div><p class="eyebrow" id="editor-eyebrow">WORKSPACE RECORD</p><h2 id="editor-title">Edit record</h2></div><button type="button" class="icon-button" data-close="editor" aria-label="Close editor">×</button></div><div id="editor-fields" class="dialog-body"></div><div id="form-error" class="form-error" role="alert" hidden></div><div class="dialog-actions"><button type="button" class="button" data-close="editor">Cancel</button><button type="submit" class="button primary" id="editor-save">Save record</button></div></form></dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-head"><h2 id="confirm-title">Confirm action</h2></div><p id="confirm-message" class="confirm-message"></p><div class="dialog-actions"><button type="button" class="button" id="confirm-cancel">Cancel</button><button type="button" class="button primary" id="confirm-proceed">Continue</button></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <input id="import-file" type="file" accept="application/json,.json" hidden>
+  <noscript><div class="noscript">Proofpack needs JavaScript for the local workspace. Enable it and reload; exported handover documents work without JavaScript.</div></noscript>
+</body>
+</html>

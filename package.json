@@ -1,0 +1,12 @@
+{
+  "name": "proofpack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-first pilot evidence and customer handover workspace",
+  "type": "module",
+  "engines": { "node": ">=23" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  }
+}
