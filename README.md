@@ -1,10 +1,10 @@
 # proofpack
 
-Local-first pilot evidence: criteria, evidence, risks, attachments, agent proposals and a customer-safe handover, with the proceed, hold or stop call left to a human.
+Local-first pilot evidence: criteria, evidence, risks, attachments, agent proposals and a customer-safe handover. The proceed, hold or stop call stays with a human.
 
-A pilot succeeds or fails on whether the evidence supports the success criteria the customer agreed to, and that trail usually lives in a chat thread, a slide and someone's memory. proofpack keeps it as a record. Each pilot has a charter, criteria with metric, baseline and threshold, evidence items tied to criteria, risks, decisions, a checklist and attachments verified by SHA-256. `pilot.check` reports criterion coverage, stale evidence and outstanding handover actions. Every record carries a visibility flag, and the customer export includes only what was marked customer-visible.
+A pilot succeeds or fails on whether the evidence supports the criteria the customer agreed to. That trail usually lives in a chat thread, a slide and someone's memory. proofpack keeps it as a record. Each pilot has a charter, criteria with metric, baseline and threshold, evidence items tied to criteria, risks, decisions, a checklist and attachments verified by SHA-256. `pilot.check` reports criterion coverage, stale evidence and outstanding handover actions. Every record carries a visibility flag. The customer export includes only what was marked customer-visible.
 
-The part I care most about is the review boundary. An agent session can propose that a criterion is met, tied to the exact inputs it reviewed, and the proposal goes stale the moment those inputs change. Recording a criterion review or a proceed, hold or stop decision is a separate operation that an agent session cannot call. The tool makes no claim that this is authenticated sign-off. It is a deliberate, locally asserted human action, kept apart from what the agent did.
+The review boundary is the part I care about. An agent session can propose that a criterion is met, tied to the exact inputs it reviewed. The proposal goes stale the moment those inputs change. Recording a criterion review or a proceed, hold or stop decision is a separate operation that an agent session cannot call. This is not authenticated sign-off. It is a deliberate, locally asserted human action, kept apart from what the agent did.
 
 ## Quick start
 
@@ -31,7 +31,7 @@ Operations take JSON on `--input file.json` or stdin and answer `{ ok, data | er
 
 ## In the suite
 
-proofpack is one of three tools in [fieldpack](https://github.com/ong6/fieldpack). The deckforge export is the seam between them: evidence goes in here, the readout deck gets measured over there. [skillforge](https://github.com/ong6/skillforge) is where the skill that drives this workflow would be evaluated.
+proofpack is one of three tools in [fieldpack](https://github.com/ong6/fieldpack). The deckforge export is the seam between them: evidence goes in here, the readout deck gets measured over there. [skillforge](https://github.com/ong6/skillforge) is where the skill that drives this workflow gets evaluated.
 
 ## More from ong6
 
@@ -43,3 +43,4 @@ Forges make things, packs bundle them.
 - [deckforge](https://github.com/ong6/deckforge) — agent-first presentation studio with a measured preflight
 - [fieldpack](https://github.com/ong6/fieldpack) — deckforge, skillforge and proofpack as one local-first suite
 - [skillpack](https://github.com/ong6/skillpack) — the Claude Code and Codex skills used across all of these
+- [uipack](https://github.com/ong6/uipack) — React and SVG figure components behind the diagrams on junxiong.dev
