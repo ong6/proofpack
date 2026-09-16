@@ -1,6 +1,6 @@
 import { PilotLibrary } from './library.js';
 import { validateProject, id, assess, coverage, manifest, customerProject, criterionFingerprint, pilotFingerprint } from './core.js';
-import { fielddeckDeck } from './fielddeck.js';
+import { deckforgeDeck } from './deckforge.js';
 import { renderHandover } from './handover.js';
 import { fault, fingerprint } from './agent/workspace.mjs';
 import { records } from './agent/schemas.mjs';
@@ -38,7 +38,7 @@ export class ProofpackService {
   async export(pilotId, format, includePrivate) {
     const store = this.store(pilotId), p = store.snapshot(), health = await store.health(p); let value, mediaType = 'application/json';
     if (format === 'backup') { if (!includePrivate) throw fault('PRIVATE_CONFIRMATION_REQUIRED', 'Full backup includes internal records and attachment bytes.'); value = await store.backup(); }
-    else if (format === 'fielddeck') value = fielddeckDeck(p, health);
+    else if (format === 'deckforge') value = deckforgeDeck(p, health);
     else if (format === 'manifest') value = manifest(p, health);
     else { value = await renderHandover(p, store); mediaType = 'text/html'; }
     const bytes = Buffer.from(typeof value === 'string' ? value : JSON.stringify(value, null, 2));

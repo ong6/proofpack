@@ -1,11 +1,11 @@
 import { assess, coverage, customerProject, decisionFreshness, today, ValidationError } from './core.js';
 
-// Fielddeck v1's public interchange limits. No Fielddeck runtime dependency is required.
+// Deckforge v1's public interchange limits. No Deckforge runtime dependency is required.
 const MAX_SLIDES = 30;
 const MAX_BYTES = 1024 * 1024;
 const NOTICE = 'Customer-visible records only; not a whole-workspace sign-off. Evidence is not an approval. Historical assessments are not current passes. Review shared free text before distribution. Attachment bytes and private review snapshots are not included.';
 const DEMO = 'FICTIONAL DEMONSTRATION — Synthetic organizations, people, results and attachments. Not real customer evidence.';
-const fail = (reason) => { throw new ValidationError(`Fielddeck export ${reason}. Shorten customer-visible text or split this pilot into smaller customer presentations, then retry. No content has been silently omitted; use the full customer handover when all detail is required.`); };
+const fail = (reason) => { throw new ValidationError(`Deckforge export ${reason}. Shorten customer-visible text or split this pilot into smaller customer presentations, then retry. No content has been silently omitted; use the full customer handover when all detail is required.`); };
 const text = (value) => {
   const result = String(value ?? '');
   if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(result)) fail('contains unsupported control characters');
@@ -28,7 +28,7 @@ function chunks(value, max) {
 const field = (label, value, fallback = 'Not provided') => `${label}: ${text(value) || fallback}`;
 const lines = (...values) => values.filter(Boolean).join('\n');
 
-export function fielddeckDeck(project, health = {}) {
+export function deckforgeDeck(project, health = {}) {
   // Derive everything, including totals, warnings and freshness, from this projection.
   const safe = customerProject(project);
   const readiness = assess(safe, health);

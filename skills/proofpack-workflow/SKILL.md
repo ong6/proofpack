@@ -20,7 +20,7 @@ Run `commands` for operation schemas and `record.schema` for section fields. Sel
 5. Run `pilot.check` for coverage, staleness, attachment integrity and incomplete tasks. Evidence presence does not mark criteria met.
 6. Use `review.propose` for your assessment or recommended proceed/hold/stop outcome. Identify yourself as the agent. Proposals are internal, snapshot-bound and never count as reviewed approval. Do not call `review.record` or `decision.record` to impersonate a human. Those CLI actions are only for a deliberate human-entered review and still are not authenticated customer sign-off.
 7. Ask the human to inspect proposals and current evidence in `ui --workspace PATH`, then record the review themselves. Changed inputs require re-review.
-8. Export `pilot.export` as customer `handover`, `manifest` or `fielddeck`. Inspect shared free text and file contents before distribution: record visibility is filtering, not semantic secret redaction. Use `--output PATH` to save bytes without overwriting an existing artifact.
+8. Export `pilot.export` as customer `handover`, `manifest` or `deckforge`. Inspect shared free text and file contents before distribution: record visibility is filtering, not semantic secret redaction. Use `--output PATH` to save bytes without overwriting an existing artifact.
 
 ## Recover without hiding uncertainty
 

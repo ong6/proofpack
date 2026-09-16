@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PilotLibrary } from './library.js';
 import { LIMITS, ValidationError, assess, manifest, demoProject, emptyProject, coverage, decisionFreshness } from './core.js';
-import { fielddeckDeck } from './fielddeck.js';
+import { deckforgeDeck } from './deckforge.js';
 import { renderHandover } from './handover.js';
 import { withLock } from './agent/workspace.mjs';
 import { ProofpackService } from './service.mjs';
@@ -66,9 +66,9 @@ export async function createApp({ directory = path.join(ROOT, 'data'), workspace
         if (url.searchParams.get('confirm') !== 'internal') throw new ValidationError('Full backup contains internal records and attachment bytes. Explicit confirmation is required.');
         return download(response, 'proofpack-full-private-backup.json', 'application/json; charset=utf-8', JSON.stringify(await scoped((active) => active.backup()), null, 2));
       }
-      if (request.method === 'GET' && ['/api/export/manifest', '/api/export/fielddeck'].includes(route)) {
-        const result = await scoped(async (active) => { const project = active.snapshot(); const health = await active.health(project); return route.endsWith('fielddeck') ? fielddeckDeck(project, health) : manifest(project, health); });
-        return download(response, route.endsWith('fielddeck') ? 'proofpack-customer-readout.fielddeck.json' : 'proofpack-customer-evidence-manifest.json', 'application/json; charset=utf-8', JSON.stringify(result, null, 2));
+      if (request.method === 'GET' && ['/api/export/manifest', '/api/export/deckforge'].includes(route)) {
+        const result = await scoped(async (active) => { const project = active.snapshot(); const health = await active.health(project); return route.endsWith('deckforge') ? deckforgeDeck(project, health) : manifest(project, health); });
+        return download(response, route.endsWith('deckforge') ? 'proofpack-customer-readout.deckforge.json' : 'proofpack-customer-evidence-manifest.json', 'application/json; charset=utf-8', JSON.stringify(result, null, 2));
       }
       if (request.method === 'GET' && ['/api/export/handover', '/handover'].includes(route)) {
         const html = await scoped((active) => active.serial(() => renderHandover(active.snapshot(), active))); response.setHeader('Content-Security-Policy', EXPORT_CSP);
